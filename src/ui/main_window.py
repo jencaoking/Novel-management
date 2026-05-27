@@ -2,8 +2,7 @@ import os
 import qtawesome as qta
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLineEdit, QPushButton, QListWidget, QListWidgetItem,
-    QLabel, QSplitter, QComboBox, QGroupBox, QTextEdit,
+    QLineEdit, QPushButton, QLabel, QSplitter, QComboBox, QGroupBox,
     QMessageBox, QStatusBar, QScrollArea, QFrame, QProgressBar
 )
 from PyQt5.QtGui import QIcon, QFont
@@ -11,6 +10,7 @@ from PyQt5.QtCore import Qt, QSize
 from manager.file_manager import FileManager
 from manager.converter import Converter
 from ui.widgets.novel_card import NovelCard
+from ui.widgets.flow_layout import FlowLayout
 from ui.widgets.progress_dialog import ProgressDialog
 from ui.widgets.toast import Toast
 from ui.widgets.convert_worker import ConvertWorker
@@ -264,23 +264,19 @@ class MainWindow(QMainWindow):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(8, 8, 8, 8)
         
-        self.novel_list = QListWidget()
-        self.novel_list.setStyleSheet("""
-            QListWidget {
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setStyleSheet("""
+            QScrollArea {
                 border: 1px solid #e0e0e0;
                 border-radius: 8px;
                 background-color: #fafafa;
             }
-            QListWidget::item {
-                padding: 4px;
-                border-bottom: 1px solid #f0f0f0;
-            }
-            QListWidget::item:selected {
-                background-color: #e3f2fd;
-            }
         """)
-        self.novel_list.itemClicked.connect(self.on_novel_click)
-        self.novel_list.setSelectionMode(QListWidget.ExtendedSelection)
+        
+        self.novel_container = QWidget()
+        self.flow_layout = FlowLayout(self.novel_container, margin=8, spacing=8)
+        self.scroll_area.setWidget(self.novel_container)
         
         self.empty_state = QWidget()
         empty_layout = QVBoxLayout(self.empty_state)
@@ -302,7 +298,9 @@ class MainWindow(QMainWindow):
         empty_layout.addWidget(self.empty_text)
         empty_layout.addWidget(empty_hint)
         
-        left_layout.addWidget(self.novel_list)
+        self.novel_cards = []
+        
+        left_layout.addWidget(self.scroll_area)
         left_layout.addWidget(self.empty_state)
         self.empty_state.hide()
         
@@ -479,26 +477,33 @@ class MainWindow(QMainWindow):
             self.load_novels()
     
     def load_novels(self):
-        self.novel_list.clear()
+        self.clear_novel_cards()
         self.file_manager.load_all_novels()
         
         for novel in self.file_manager.novels:
-            item = QListWidgetItem()
             card = NovelCard(novel)
-            item.setSizeHint(card.sizeHint())
-            self.novel_list.addItem(item)
-            self.novel_list.setItemWidget(item, card)
+            card.clicked.connect(self.on_novel_click)
+            self.flow_layout.addWidget(card)
+            self.novel_cards.append(card)
         
         self.update_stats_panel()
         self.update_empty_state()
     
+    def clear_novel_cards(self):
+        while self.flow_layout.count() > 0:
+            item = self.flow_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+        self.novel_cards.clear()
+    
     def update_empty_state(self):
-        if self.novel_list.count() == 0:
-            self.novel_list.hide()
+        if len(self.novel_cards) == 0:
+            self.scroll_area.hide()
             self.empty_state.show()
         else:
             self.empty_state.hide()
-            self.novel_list.show()
+            self.scroll_area.show()
     
     def on_search(self):
         keyword = self.search_input.text()
@@ -560,46 +565,44 @@ class MainWindow(QMainWindow):
         self.display_results(results)
     
     def display_results(self, novels):
-        self.novel_list.clear()
+        self.clear_novel_cards()
         
         for novel in novels:
-            item = QListWidgetItem()
             card = NovelCard(novel)
-            item.setSizeHint(card.sizeHint())
-            self.novel_list.addItem(item)
-            self.novel_list.setItemWidget(item, card)
+            card.clicked.connect(self.on_novel_click)
+            self.flow_layout.addWidget(card)
+            self.novel_cards.append(card)
         
         self.update_empty_state_for_search(len(novels) == 0)
     
     def update_empty_state_for_search(self, is_empty):
         if is_empty:
-            self.novel_list.hide()
+            self.scroll_area.hide()
             self.empty_state.show()
             self.empty_text.setText("没有找到匹配的小说")
         else:
             self.empty_state.hide()
-            self.novel_list.show()
+            self.scroll_area.show()
     
-    def on_novel_click(self, item):
-        card = self.novel_list.itemWidget(item)
-        if card:
-            self.show_detail(card.novel)
-        
-        self.update_selected_novels()
+    def on_novel_click(self, card):
+        self.show_detail(card.novel)
+        self.update_selected_novels(card)
     
-    def update_selected_novels(self):
-        self.selected_novels = []
-        for item in self.novel_list.selectedItems():
-            card = self.novel_list.itemWidget(item)
-            if card:
-                self.selected_novels.append(card.novel)
-                card.set_selected(True)
+    def update_selected_novels(self, clicked_card=None):
+        from PyQt5.QtWidgets import QApplication
+        from PyQt5.QtCore import Qt
         
-        for i in range(self.novel_list.count()):
-            item = self.novel_list.item(i)
-            card = self.novel_list.itemWidget(item)
-            if card and card.novel not in self.selected_novels:
-                card.set_selected(False)
+        modifiers = QApplication.keyboardModifiers()
+        is_ctrl_pressed = bool(modifiers & Qt.ControlModifier)
+        
+        if is_ctrl_pressed:
+            if clicked_card:
+                clicked_card.set_selected(not clicked_card.isSelected())
+        else:
+            for card in self.novel_cards:
+                card.set_selected(card == clicked_card)
+        
+        self.selected_novels = [card.novel for card in self.novel_cards if card.isSelected()]
         
         has_single = len(self.selected_novels) == 1
         has_multiple = len(self.selected_novels) >= 1
