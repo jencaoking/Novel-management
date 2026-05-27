@@ -38,7 +38,7 @@ class FileManager:
     def has_valid_directories(self):
         epub_valid = os.path.exists(self.epub_dir) if self.epub_dir else False
         txt_valid = os.path.exists(self.txt_dir) if self.txt_dir else False
-        return epub_valid or txt_valid
+        return epub_valid and txt_valid
     
     def scan_directory(self, dir_path, ext):
         novels = []
