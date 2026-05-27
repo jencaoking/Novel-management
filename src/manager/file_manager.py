@@ -1,6 +1,15 @@
+import sys
 import os
 from model.novel import Novel
 from PyQt5.QtCore import QSettings
+
+
+def get_base_path():
+    """获取程序运行的真实基准路径，兼容源码运行和 PyInstaller 打包运行"""
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    else:
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class FileManager:
@@ -13,15 +22,20 @@ class FileManager:
         epub_dir = self.settings.value('epub_dir', '')
         txt_dir = self.settings.value('txt_dir', '')
         
+        base_path = get_base_path()
+        
         if epub_dir and os.path.exists(epub_dir):
             self.epub_dir = epub_dir
         else:
-            self.epub_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'EPUB')
+            self.epub_dir = os.path.join(base_path, 'EPUB')
             
         if txt_dir and os.path.exists(txt_dir):
             self.txt_dir = txt_dir
         else:
-            self.txt_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'Novel txt')
+            self.txt_dir = os.path.join(base_path, 'Novel txt')
+            
+        os.makedirs(self.epub_dir, exist_ok=True)
+        os.makedirs(self.txt_dir, exist_ok=True)
     
     def set_directories(self, epub_dir, txt_dir):
         self.epub_dir = epub_dir
@@ -99,8 +113,10 @@ class FileManager:
             size_str = f"{total_size} B"
         elif total_size < 1024 * 1024:
             size_str = f"{total_size / 1024:.2f} KB"
-        else:
+        elif total_size < 1024 * 1024 * 1024:
             size_str = f"{total_size / (1024 * 1024):.2f} MB"
+        else:
+            size_str = f"{total_size / (1024 * 1024 * 1024):.2f} GB"
         
         return {
             'total': total,
