@@ -1,5 +1,6 @@
 import os
 import uuid
+import re
 from datetime import datetime
 
 class Novel:
@@ -18,24 +19,33 @@ class Novel:
     
     def _extract_title(self):
         name = os.path.splitext(self.filename)[0]
-        patterns = ['《', '》', '(', '（', '[', '【']
-        for pattern in patterns:
-            if pattern in name:
-                name = name.split(pattern)[0].strip()
-                break
+        name = re.sub(r'[\(（\[【].*?[\)）\]】]', '', name).strip()
+        name = name.replace('《', '').replace('》', '').strip()
+        
         return name if name else '未知标题'
     
     def _extract_author(self):
         name = os.path.splitext(self.filename)[0]
-        patterns = [('(', ')'), ('（', '）'), ('[', ']'), ('【', '】')]
-        for start, end in patterns:
-            if start in name and end in name:
-                idx_start = name.find(start)
-                idx_end = name.find(end, idx_start)
-                if idx_end > idx_start:
-                    author = name[idx_start+1:idx_end].strip()
-                    if author and 'by' not in author.lower():
-                        return author
+        matches = re.findall(r'[\(（\[【](.*?)[\)）\]】]', name)
+        
+        for match in matches:
+            author = match.strip()
+            if not author:
+                continue
+            
+            ignore_tags = ['完结', '精校版', '精校全本', '全本', '校对版', 'TXT']
+            if any(tag in author for tag in ignore_tags):
+                continue
+                
+            lower_author = author.lower()
+            if lower_author.startswith('by ') or lower_author.startswith('by:'):
+                author = author[3:].strip()
+            elif author.startswith('作者:') or author.startswith('作者：'):
+                author = author[3:].strip()
+                
+            if author:
+                return author
+                
         return '未知作者'
     
     def get_size_str(self):
