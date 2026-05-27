@@ -62,7 +62,8 @@ class Converter:
                 chapter_title = chapter['title'] if chapter['title'] else f'第{i+1}章'
                 
                 c = epub.EpubHtml(title=chapter_title, file_name=f'{chapter_id}.xhtml', lang='zh')
-                c.content = f'<html><head></head><body><h1>{chapter_title}</h1><p>{chapter["content"]}</p></body></html>'
+                formatted_content = chapter["content"].replace('\n', '<br/>')
+                c.content = f'<html><head></head><body><h1>{chapter_title}</h1><div>{formatted_content}</div></body></html>'
                 
                 book.add_item(c)
                 spine.append(chapter_id)
