@@ -2,10 +2,17 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
+
 class NovelCard(QWidget):
+    EPUB_COLOR = '#2196F3'
+    EPUB_BG = '#e3f2fd'
+    TXT_COLOR = '#FF9800'
+    TXT_BG = '#fff3e0'
+    
     def __init__(self, novel, parent=None):
         super().__init__(parent)
         self.novel = novel
+        self._selected = False
         self.init_ui()
     
     def init_ui(self):
@@ -13,25 +20,32 @@ class NovelCard(QWidget):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(12)
         
+        if self.novel.format == 'EPUB':
+            icon_color = self.EPUB_COLOR
+            icon_bg = self.EPUB_BG
+            format_icon = '📘'
+        else:
+            icon_color = self.TXT_COLOR
+            icon_bg = self.TXT_BG
+            format_icon = '📄'
+        
         icon_label = QLabel()
         icon_label.setFixedSize(48, 48)
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setStyleSheet("""
-            QLabel {
-                background-color: #e8f4f8;
+        icon_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {icon_bg};
                 border-radius: 8px;
                 font-size: 24px;
-            }
+            }}
         """)
-        
-        format_icon = '📖' if self.novel.format == 'EPUB' else '📝'
         icon_label.setText(format_icon)
         
         info_layout = QVBoxLayout()
         info_layout.setSpacing(2)
         
         title_label = QLabel(self.novel.title)
-        title_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #333;")
+        title_label.setStyleSheet(f"font-weight: bold; font-size: 14px; color: {icon_color};")
         title_label.setWordWrap(True)
         title_label.setMaximumWidth(200)
         
@@ -43,15 +57,15 @@ class NovelCard(QWidget):
         
         format_label = QLabel(self.novel.format)
         format_label.setAlignment(Qt.AlignCenter)
-        format_label.setStyleSheet("""
-            QLabel {
-                background-color: #4CAF50;
+        format_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {icon_color};
                 color: white;
                 padding: 2px 8px;
                 border-radius: 4px;
                 font-size: 10px;
                 min-width: 32px;
-            }
+            }}
         """)
         
         size_label = QLabel(self.novel.get_size_str())
@@ -70,14 +84,33 @@ class NovelCard(QWidget):
         
         self.setLayout(layout)
         
-        self.setStyleSheet("""
-            QWidget {
+        self._base_style = f"""
+            QWidget {{
                 background-color: white;
                 border: 1px solid #e0e0e0;
                 border-radius: 8px;
-            }
-            QWidget:hover {
-                border-color: #2196F3;
+            }}
+            QWidget:hover {{
+                border-color: {icon_color};
                 background-color: #f8fafc;
-            }
-        """)
+            }}
+        """
+        self._selected_style = f"""
+            QWidget {{
+                background-color: {icon_bg};
+                border: 3px solid {icon_color};
+                border-left: 4px solid {icon_color};
+                border-radius: 8px;
+            }}
+        """
+        self.setStyleSheet(self._base_style)
+    
+    def set_selected(self, selected):
+        self._selected = selected
+        if selected:
+            self.setStyleSheet(self._selected_style)
+        else:
+            self.setStyleSheet(self._base_style)
+    
+    def isSelected(self):
+        return self._selected

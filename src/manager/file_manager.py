@@ -1,15 +1,48 @@
 import os
-from src.model.novel import Novel
+from model.novel import Novel
+from PyQt5.QtCore import QSettings
+
 
 class FileManager:
     def __init__(self):
-        self.epub_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'EPUB')
-        self.txt_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'Novel txt')
+        self.settings = QSettings('NovelManagement', 'NovelApp')
         self.novels = []
+        self._init_directories()
+        
+    def _init_directories(self):
+        epub_dir = self.settings.value('epub_dir', '')
+        txt_dir = self.settings.value('txt_dir', '')
+        
+        if epub_dir and os.path.exists(epub_dir):
+            self.epub_dir = epub_dir
+        else:
+            self.epub_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'EPUB')
+            
+        if txt_dir and os.path.exists(txt_dir):
+            self.txt_dir = txt_dir
+        else:
+            self.txt_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'Novel txt')
+    
+    def set_directories(self, epub_dir, txt_dir):
+        self.epub_dir = epub_dir
+        self.txt_dir = txt_dir
+        self.settings.setValue('epub_dir', epub_dir)
+        self.settings.setValue('txt_dir', txt_dir)
+        
+    def get_directories(self):
+        return {
+            'epub_dir': self.epub_dir,
+            'txt_dir': self.txt_dir
+        }
+    
+    def has_valid_directories(self):
+        epub_valid = os.path.exists(self.epub_dir) if self.epub_dir else False
+        txt_valid = os.path.exists(self.txt_dir) if self.txt_dir else False
+        return epub_valid or txt_valid
     
     def scan_directory(self, dir_path, ext):
         novels = []
-        if not os.path.exists(dir_path):
+        if not dir_path or not os.path.exists(dir_path):
             return novels
         
         for filename in os.listdir(dir_path):

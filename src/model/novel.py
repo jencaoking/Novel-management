@@ -1,9 +1,10 @@
 import os
+import uuid
 from datetime import datetime
 
 class Novel:
     def __init__(self, file_path):
-        self.id = id(self)
+        self.id = str(uuid.uuid4())
         self.path = file_path
         self.filename = os.path.basename(file_path)
         self.extension = os.path.splitext(self.filename)[1].lower()

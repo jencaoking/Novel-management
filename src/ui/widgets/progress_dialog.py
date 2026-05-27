@@ -23,7 +23,7 @@ class ProgressDialog(QDialog):
         self.setLayout(layout)
     
     def update_progress(self, current, total):
-        percentage = int((current / total) * 100)
+        percentage = int((current / total) * 100) if total > 0 else 0
         self.progress_bar.setValue(percentage)
         self.label.setText(f"正在处理: {current}/{total}")
     

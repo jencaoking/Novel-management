@@ -55,14 +55,14 @@ class Converter:
             
             for i, chapter in enumerate(chapters):
                 chapter_id = f'chapter_{i+1}'
-                title = chapter['title'] if chapter['title'] else f'第{i+1}章'
+                chapter_title = chapter['title'] if chapter['title'] else f'第{i+1}章'
                 
-                c = epub.EpubHtml(title=title, file_name=f'{chapter_id}.xhtml', lang='zh')
-                c.content = f'<html><head></head><body><h1>{title}</h1><p>{chapter["content"]}</p></body></html>'
+                c = epub.EpubHtml(title=chapter_title, file_name=f'{chapter_id}.xhtml', lang='zh')
+                c.content = f'<html><head></head><body><h1>{chapter_title}</h1><p>{chapter["content"]}</p></body></html>'
                 
                 book.add_item(c)
                 spine.append(chapter_id)
-                toc.append(epub.Link(f'{chapter_id}.xhtml', title, chapter_id))
+                toc.append(epub.Link(f'{chapter_id}.xhtml', chapter_title, chapter_id))
             
             book.toc = toc
             book.add_item(epub.EpubNcx())
