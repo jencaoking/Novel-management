@@ -34,8 +34,12 @@ class Converter:
         epub_path = os.path.join(output_dir, f"{base_name}.epub")
         
         try:
-            with open(txt_path, 'r', encoding='utf-8', errors='replace') as f:
-                content = f.read()
+            try:
+                with open(txt_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            except UnicodeDecodeError:
+                with open(txt_path, 'r', encoding='gbk', errors='ignore') as f:
+                    content = f.read()
             
             book = epub.EpubBook()
             
