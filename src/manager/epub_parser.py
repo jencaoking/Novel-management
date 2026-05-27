@@ -1,4 +1,3 @@
-import os
 import warnings
 import ebooklib
 from ebooklib import epub
@@ -16,7 +15,7 @@ class EPUBParser:
             data = book.get_metadata(namespace, name)
             if not data:
                 return ''
-            if isinstance(data, list) and len(data) &gt; 0:
+            if isinstance(data, list) and len(data) > 0:
                 if isinstance(data[0], tuple):
                     return str(data[0][0])
                 return str(data[0])
