@@ -535,9 +535,13 @@ class MainWindow(QMainWindow):
         keyword = self.search_input.text()
         if keyword:
             search_type = self.search_type.currentText()
-            search_type_map = {"全部": "all", "书名": "title", "作者": "author"}
-            self.file_manager.novels = results
-            results = self.file_manager.search_novels(keyword, search_type_map[search_type])
+            keyword = keyword.lower()
+            if search_type == "全部":
+                results = [n for n in results if keyword in n.title.lower() or keyword in n.author.lower()]
+            elif search_type == "书名":
+                results = [n for n in results if keyword in n.title.lower()]
+            elif search_type == "作者":
+                results = [n for n in results if keyword in n.author.lower()]
         
         self.display_results(results)
     
@@ -591,8 +595,17 @@ class MainWindow(QMainWindow):
         self.delete_btn.setEnabled(has_multiple)
     
     def show_detail(self, novel):
-        for i in reversed(range(self.detail_layout.count())):
-            self.detail_layout.itemAt(i).widget().deleteLater()
+        while self.detail_layout.count():
+            item = self.detail_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                layout = item.layout()
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+                layout.deleteLater()
         
         grid = QGridLayout()
         grid.setSpacing(8)
