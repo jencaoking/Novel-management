@@ -1,3 +1,4 @@
+import html
 import os
 from ebooklib import epub
 from bs4 import BeautifulSoup
@@ -62,7 +63,7 @@ class Converter:
                 chapter_title = chapter['title'] if chapter['title'] else f'第{i+1}章'
                 
                 c = epub.EpubHtml(title=chapter_title, file_name=f'{chapter_id}.xhtml', lang='zh')
-                formatted_content = chapter["content"].replace('\n', '<br/>')
+                formatted_content = html.escape(chapter["content"]).replace('\n', '<br/>')
                 c.content = f'<html><head></head><body><h1>{chapter_title}</h1><div>{formatted_content}</div></body></html>'
                 
                 book.add_item(c)
@@ -87,10 +88,11 @@ class Converter:
         current_chapter = {'title': None, 'content': ''}
         
         for line in lines:
-            if line.startswith('第') and ('章' in line or '节' in line):
+            stripped_line = line.strip()
+            if stripped_line.startswith('第') and ('章' in stripped_line or '节' in stripped_line):
                 if current_chapter['content'].strip():
                     chapters.append(current_chapter)
-                current_chapter = {'title': line.strip(), 'content': ''}
+                current_chapter = {'title': stripped_line, 'content': ''}
             else:
                 current_chapter['content'] += line + '\n'
         
