@@ -1,4 +1,5 @@
 import os
+import qtawesome as qta
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLineEdit, QPushButton, QListWidget, QListWidgetItem,
@@ -59,10 +60,13 @@ class MainWindow(QMainWindow):
         toolbar_layout.setContentsMargins(16, 8, 16, 8)
         toolbar_layout.setSpacing(12)
         
-        title_label = QLabel("📚 小说管理")
+        title_icon = QLabel()
+        title_icon.setPixmap(qta.icon('fa5s.book', color='white').pixmap(24, 24))
+        title_label = QLabel("小说管理")
         title_label.setFont(QFont("Microsoft YaHei", 16, QFont.Bold))
         title_label.setStyleSheet("color: white;")
         
+        toolbar_layout.addWidget(title_icon)
         toolbar_layout.addWidget(title_label)
         toolbar_layout.addStretch()
         
@@ -137,7 +141,9 @@ class MainWindow(QMainWindow):
         toolbar_layout.addWidget(self.filter_epub_btn)
         toolbar_layout.addWidget(self.filter_txt_btn)
         
-        self.settings_btn = QPushButton("⚙️")
+        self.settings_btn = QPushButton()
+        self.settings_btn.setIcon(qta.icon('fa5s.cog', color='white'))
+        self.settings_btn.setIconSize(QSize(20, 20))
         self.settings_btn.setFixedWidth(40)
         self.settings_btn.setStyleSheet("""
             QPushButton {
@@ -154,7 +160,9 @@ class MainWindow(QMainWindow):
         """)
         self.settings_btn.clicked.connect(self.open_settings)
         
-        self.refresh_btn = QPushButton("🔄")
+        self.refresh_btn = QPushButton()
+        self.refresh_btn.setIcon(qta.icon('fa5s.sync-alt', color='white'))
+        self.refresh_btn.setIconSize(QSize(20, 20))
         self.refresh_btn.setFixedWidth(40)
         self.refresh_btn.setStyleSheet("""
             QPushButton {
@@ -186,21 +194,21 @@ class MainWindow(QMainWindow):
         self.stat_cards = {}
         
         card_configs = [
-            ('total', '📚', '总计', '#333'),
-            ('epub', '📘', 'EPUB', '#2196F3'),
-            ('txt', '📄', 'TXT', '#FF9800'),
-            ('size', '💾', '总大小', '#666')
+            ('total', 'fa5s.book', '总计', '#333'),
+            ('epub', 'fa5s.book-open', 'EPUB', '#2196F3'),
+            ('txt', 'fa5s.file-alt', 'TXT', '#FF9800'),
+            ('size', 'fa5s.hdd', '总大小', '#666')
         ]
         
-        for key, icon, label, color in card_configs:
-            card = self.create_stat_card(icon, label, '0', color)
+        for key, icon_name, label, color in card_configs:
+            card = self.create_stat_card(icon_name, label, '0', color)
             self.stat_cards[key] = card
             stats_layout.addWidget(card)
         
         stats_layout.addStretch()
         parent_layout.addWidget(stats_panel)
     
-    def create_stat_card(self, icon, label, value, color):
+    def create_stat_card(self, icon_name, label, value, color):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
@@ -213,8 +221,8 @@ class MainWindow(QMainWindow):
         card_layout.setContentsMargins(8, 4, 8, 4)
         card_layout.setSpacing(8)
         
-        icon_label = QLabel(icon)
-        icon_label.setStyleSheet(f"font-size: 20px;")
+        icon_label = QLabel()
+        icon_label.setPixmap(qta.icon(icon_name, color=color).pixmap(24, 24))
         
         text_layout = QVBoxLayout()
         text_layout.setSpacing(0)
@@ -278,8 +286,8 @@ class MainWindow(QMainWindow):
         empty_layout = QVBoxLayout(self.empty_state)
         empty_layout.setAlignment(Qt.AlignCenter)
         
-        empty_icon = QLabel("📭")
-        empty_icon.setStyleSheet("font-size: 48px;")
+        empty_icon = QLabel()
+        empty_icon.setPixmap(qta.icon('fa5s.inbox', color='#ccc').pixmap(64, 64))
         empty_icon.setAlignment(Qt.AlignCenter)
         
         self.empty_text = QLabel("没有找到小说")
@@ -348,7 +356,9 @@ class MainWindow(QMainWindow):
         action_layout = QVBoxLayout(action_group)
         action_layout.setSpacing(8)
         
-        self.convert_btn = QPushButton("📄 EPUB → TXT")
+        self.convert_btn = QPushButton("EPUB → TXT")
+        self.convert_btn.setIcon(qta.icon('fa5s.file-export', color='white'))
+        self.convert_btn.setIconSize(QSize(18, 18))
         self.convert_btn.setStyleSheet("""
             QPushButton {
                 padding: 12px;
@@ -369,7 +379,9 @@ class MainWindow(QMainWindow):
         self.convert_btn.clicked.connect(self.convert_single)
         self.convert_btn.setEnabled(False)
         
-        self.batch_convert_btn = QPushButton("📦 批量转换")
+        self.batch_convert_btn = QPushButton("批量转换")
+        self.batch_convert_btn.setIcon(qta.icon('fa5s.clone', color='#2196F3'))
+        self.batch_convert_btn.setIconSize(QSize(18, 18))
         self.batch_convert_btn.setStyleSheet("""
             QPushButton {
                 padding: 12px;
@@ -391,7 +403,9 @@ class MainWindow(QMainWindow):
         self.batch_convert_btn.clicked.connect(self.batch_convert)
         self.batch_convert_btn.setEnabled(False)
         
-        self.delete_btn = QPushButton("🗑️ 删除")
+        self.delete_btn = QPushButton("删除")
+        self.delete_btn.setIcon(qta.icon('fa5s.trash-alt', color='white'))
+        self.delete_btn.setIconSize(QSize(18, 18))
         self.delete_btn.setStyleSheet("""
             QPushButton {
                 padding: 12px;

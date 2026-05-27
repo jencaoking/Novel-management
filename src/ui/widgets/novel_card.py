@@ -1,6 +1,7 @@
+import qtawesome as qta
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QFrame
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 
 
 class NovelCard(QWidget):
@@ -13,6 +14,8 @@ class NovelCard(QWidget):
         super().__init__(parent)
         self.novel = novel
         self._selected = False
+        self.icon_color = self.EPUB_COLOR if novel.format == 'EPUB' else self.TXT_COLOR
+        self.icon_bg = self.EPUB_BG if novel.format == 'EPUB' else self.TXT_BG
         self.init_ui()
     
     def init_ui(self):
@@ -20,32 +23,23 @@ class NovelCard(QWidget):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(12)
         
-        if self.novel.format == 'EPUB':
-            icon_color = self.EPUB_COLOR
-            icon_bg = self.EPUB_BG
-            format_icon = '📘'
-        else:
-            icon_color = self.TXT_COLOR
-            icon_bg = self.TXT_BG
-            format_icon = '📄'
-        
         icon_label = QLabel()
         icon_label.setFixedSize(48, 48)
         icon_label.setAlignment(Qt.AlignCenter)
         icon_label.setStyleSheet(f"""
             QLabel {{
-                background-color: {icon_bg};
+                background-color: {self.icon_bg};
                 border-radius: 8px;
-                font-size: 24px;
             }}
         """)
-        icon_label.setText(format_icon)
+        icon_name = 'fa5s.book' if self.novel.format == 'EPUB' else 'fa5s.file-alt'
+        icon_label.setPixmap(qta.icon(icon_name, color=self.icon_color).pixmap(28, 28))
         
         info_layout = QVBoxLayout()
         info_layout.setSpacing(2)
         
         title_label = QLabel(self.novel.title)
-        title_label.setStyleSheet(f"font-weight: bold; font-size: 14px; color: {icon_color};")
+        title_label.setStyleSheet(f"font-weight: bold; font-size: 14px; color: {self.icon_color};")
         title_label.setWordWrap(True)
         title_label.setMaximumWidth(200)
         
@@ -59,7 +53,7 @@ class NovelCard(QWidget):
         format_label.setAlignment(Qt.AlignCenter)
         format_label.setStyleSheet(f"""
             QLabel {{
-                background-color: {icon_color};
+                background-color: {self.icon_color};
                 color: white;
                 padding: 2px 8px;
                 border-radius: 4px;
@@ -91,15 +85,15 @@ class NovelCard(QWidget):
                 border-radius: 8px;
             }}
             QWidget:hover {{
-                border-color: {icon_color};
+                border-color: {self.icon_color};
                 background-color: #f8fafc;
             }}
         """
         self._selected_style = f"""
             QWidget {{
-                background-color: {icon_bg};
-                border: 3px solid {icon_color};
-                border-left: 4px solid {icon_color};
+                background-color: {self.icon_bg};
+                border: 3px solid {self.icon_color};
+                border-left: 4px solid {self.icon_color};
                 border-radius: 8px;
             }}
         """

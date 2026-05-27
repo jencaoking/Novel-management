@@ -1,8 +1,9 @@
+import qtawesome as qta
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QLineEdit, QFileDialog, QGroupBox, QMessageBox
 )
-from PyQt5.QtCore import Qt, QSettings
+from PyQt5.QtCore import Qt, QSettings, QSize
 
 
 class SettingsDialog(QDialog):
@@ -18,9 +19,15 @@ class SettingsDialog(QDialog):
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        title_label = QLabel("⚙️ 目录设置")
+        title_layout = QHBoxLayout()
+        title_icon = QLabel()
+        title_icon.setPixmap(qta.icon('fa5s.cog', color='#333').pixmap(24, 24))
+        title_label = QLabel("目录设置")
         title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #333;")
-        layout.addWidget(title_label)
+        title_layout.addWidget(title_icon)
+        title_layout.addWidget(title_label)
+        title_layout.addStretch()
+        layout.addLayout(title_layout)
         
         epub_group = QGroupBox("EPUB 目录")
         epub_group.setStyleSheet("""
